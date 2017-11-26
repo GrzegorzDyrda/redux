@@ -8,6 +8,7 @@ Although based on redux.js, redux-kotlin differs in several ways:
 - Out-of-the-box [coroutines](https://kotlinlang.org/docs/reference/coroutines.html) support
 - Built-in support for [Commands](https://www.elm-tutorial.org/en/03-subs-cmds/02-commands.html) =
 easy way to perform side-effects (eg. showing dialogs, navigation etc.)
+- Subscribers are notified about the current State as soon as they subscribe
 
 ## Download
 

@@ -1,4 +1,4 @@
-# redux
+# Redux
 Redux is a predictable state container for [Kotlin](https://kotlinlang.org/) apps, inspired by the brilliant [Redux.js](https://redux.js.org/)!
 
 Although based on redux.js, redux-kotlin differs from it in several of ways:

@@ -32,6 +32,8 @@ dependencies {
 
 ## Getting Started
 
+If you're curious about Redux philosophy, take a look at this great documentation: https://redux.js.org/
+
 TODO
 
 ## License

@@ -8,12 +8,21 @@ import kotlin.coroutines.experimental.CoroutineContext
 /**
  * Redux Store that holds the app's State.
  *
- * @constructor Creates the Redux Store
+ * @constructor Creates the Redux Store.
  * @param initialState initial state of the Store
  * @param reducer a function that returns the next State, given the current State and the Action
  */
 class Store<STATE, ACTION>(initialState: STATE,
                            private val reducer: (STATE, ACTION) -> STATE) {
+
+    /**
+     * Creates the Redux Store.
+     *
+     * @param initialState initial state of the Store
+     * @param reducerProvider class that provides the Reducer function
+     */
+    constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
+            this(initialState, reducerProvider::rootReducer)
 
     private val subscribers = mutableListOf<StoreSubscriber<STATE>>()
 

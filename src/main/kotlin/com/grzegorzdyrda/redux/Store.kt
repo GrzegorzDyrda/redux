@@ -8,14 +8,9 @@ import kotlin.coroutines.experimental.CoroutineContext
 class Store<out STATE, ACTION>(initialState: STATE,
                                private val reducer: (STATE, ACTION) -> STATE) {
 
-    interface StoreSubscriber<in STATE> {
-        fun onNewState(state: STATE)
-        fun onCommandReceived(command: Any)
-    }
-
-    //v1 - listenery są funkcjami
+    //v1 - listeners as functions
     private val listeners = mutableListOf<(STATE) -> Unit>()
-    //v2 - listenery są instancjami StoreSubscriber
+    //v2 - listeners as StoreSubscriber instances
     private val subscribers = mutableListOf<StoreSubscriber<STATE>>()
 
     private var currentState = initialState

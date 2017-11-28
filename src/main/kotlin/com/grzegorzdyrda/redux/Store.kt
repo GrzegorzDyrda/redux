@@ -34,22 +34,21 @@ class Store<STATE, ACTION>(initialState: STATE,
      *
      * This method is thread-safe. Can be called from any thread.
      */
+    @Synchronized
     fun dispatch(action: ACTION): ACTION {
         if (isDispatching)
             throw IllegalStateException("Reducers may not dispatch actions! They should be pure functions - no side effects at all.")
 
-        synchronized(this) {
-            val newState = try {
-                isDispatching = true
-                reducer(currentState, action)
-            } finally {
-                isDispatching = false
-            }
-            // Notify listeners only when State actually changed
-            if (newState != currentState) {
-                currentState = newState
-                subscribers.forEach { it.onNewState(newState) }
-            }
+        val newState = try {
+            isDispatching = true
+            reducer(currentState, action)
+        } finally {
+            isDispatching = false
+        }
+        // Notify listeners only when State actually changed
+        if (newState != currentState) {
+            currentState = newState
+            subscribers.forEach { it.onNewState(newState) }
         }
 
         return action
@@ -87,6 +86,7 @@ class Store<STATE, ACTION>(initialState: STATE,
      * inside Reducers). They only tell the Store that it should notify its Subscribers about the
      * *intention* to perform certain side-effect.
      */
+    @Synchronized
     fun sendCommand(command: Any): Any {
         //TODO: Commands should be dispatched AFTER the reducer and
         subscribers.forEach { it.onCommandReceived(command) }
@@ -112,6 +112,7 @@ class Store<STATE, ACTION>(initialState: STATE,
      * @param subscriber subscriber to be notified on every State change
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
+    @Synchronized
     fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
         if (isDispatching)
             throw IllegalStateException("You may not call store.subscribe() while the Reducer is executing! If you would like to be notified after the store has been updated, subscribe from a component and invoke store.getState() in the callback to access the latest state.")
@@ -144,6 +145,7 @@ class Store<STATE, ACTION>(initialState: STATE,
     /**
      * Unsubscribes the given [subscriber] from this store's State changes.
      */
+    @Synchronized
     fun unsubscribe(subscriber: StoreSubscriber<STATE>) {
         subscribers -= subscriber
     }

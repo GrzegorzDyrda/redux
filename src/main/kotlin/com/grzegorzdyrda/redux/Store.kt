@@ -39,16 +39,27 @@ class Store<STATE, ACTION>(initialState: STATE,
         if (isDispatching)
             throw IllegalStateException("Reducers may not dispatch actions! They should be pure functions - no side effects at all.")
 
+        // Compute the next State
         val newState = try {
             isDispatching = true
             reducer(currentState, action)
         } finally {
             isDispatching = false
         }
-        // Notify listeners only when State actually changed
+
+        // Obtain Command (if any) and remove it from the State
+        val command = if (newState is HasCommand) newState.CMD else null
+        (newState as? HasCommand)?.CMD = null
+
+        // Update current State and notify Subscribers
         if (newState != currentState) {
             currentState = newState
             subscribers.forEach { it.onNewState(newState) }
+        }
+
+        // Dispatch Command (if any)
+        command?.let {
+            subscribers.forEach { it.onCommandReceived(command) }
         }
 
         return action
@@ -77,21 +88,6 @@ class Store<STATE, ACTION>(initialState: STATE,
         return async(context) {
             block(this@Store::dispatch, this@Store::getState)
         }
-    }
-
-    /**
-     * Sends a Command. It's a way of notifying Subscribers that a *side-effect* should be performed.
-     *
-     * *Commands* do NOT perform any side-effects by themselves (thus can be safely called from
-     * inside Reducers). They only tell the Store that it should notify its Subscribers about the
-     * *intention* to perform certain side-effect.
-     */
-    @Synchronized
-    fun sendCommand(command: Any): Any {
-        //TODO: Commands should be dispatched AFTER the reducer and
-        subscribers.forEach { it.onCommandReceived(command) }
-
-        return command
     }
 
     /**

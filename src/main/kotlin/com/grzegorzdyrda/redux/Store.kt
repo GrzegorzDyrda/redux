@@ -12,8 +12,9 @@ import kotlin.coroutines.experimental.CoroutineContext
  * @param initialState initial state of the Store
  * @param reducer a function that returns the next State, given the current State and the Action
  */
-class Store<STATE, ACTION>(initialState: STATE,
-                           private val reducer: (STATE, ACTION) -> STATE) {
+class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
+        initialState: STATE,
+        private val reducer: (STATE, ACTION) -> STATE) {
 
     /**
      * Creates the Redux Store.
@@ -24,7 +25,7 @@ class Store<STATE, ACTION>(initialState: STATE,
     constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
             this(initialState, reducerProvider::rootReducer)
 
-    private val subscribers = mutableListOf<StoreSubscriber<STATE>>()
+    private val subscribers = mutableListOf<StoreSubscriber<STATE, COMMAND>>()
 
     private var currentState = initialState
     private var isDispatching = false
@@ -48,8 +49,8 @@ class Store<STATE, ACTION>(initialState: STATE,
         }
 
         // Obtain Command (if any) and remove it from the State
-        val command = if (newState is HasCommand) newState.CMD else null
-        (newState as? HasCommand)?.CMD = null
+        val command = newState.CMD
+        newState.CMD = null
 
         // Update current State and notify Subscribers
         if (newState != currentState) {
@@ -109,7 +110,7 @@ class Store<STATE, ACTION>(initialState: STATE,
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
     @Synchronized
-    fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
+    fun subscribe(subscriber: StoreSubscriber<STATE, COMMAND>): StoreSubscriber<STATE, COMMAND> {
         if (isDispatching)
             throw IllegalStateException("You may not call store.subscribe() while the Reducer is executing! If you would like to be notified after the store has been updated, subscribe from a component and invoke store.getState() in the callback to access the latest state.")
 
@@ -129,10 +130,10 @@ class Store<STATE, ACTION>(initialState: STATE,
      * @param onNewState callback to be called each time the State changes
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
-    fun subscribe(onNewState: (STATE) -> Unit): StoreSubscriber<STATE> {
-        val subscriber = object : StoreSubscriber<STATE> {
+    fun subscribe(onNewState: (STATE) -> Unit): StoreSubscriber<STATE, COMMAND> {
+        val subscriber = object : StoreSubscriber<STATE, COMMAND> {
             override fun onNewState(state: STATE) = onNewState(state)
-            override fun onCommandReceived(command: Any) = Unit
+            override fun onCommandReceived(command: COMMAND) = Unit
         }
 
         return subscribe(subscriber)
@@ -142,7 +143,7 @@ class Store<STATE, ACTION>(initialState: STATE,
      * Unsubscribes the given [subscriber] from this store's State changes.
      */
     @Synchronized
-    fun unsubscribe(subscriber: StoreSubscriber<STATE>) {
+    fun unsubscribe(subscriber: StoreSubscriber<STATE, COMMAND>) {
         subscribers -= subscriber
     }
 

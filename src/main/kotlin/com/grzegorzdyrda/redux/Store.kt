@@ -122,13 +122,13 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
     }
 
     /**
-     * Subscribes [onNewState] callback to the State changes.
+     * Convenience method.
+     * Allows to supply [onNewState] callback, but ignore all *onCommandReceived* events.
      *
-     * This basically creates [StoreSubscriber] under-the-hood, and calls the given callback inside
-     * its [onNewState] method.
+     * See [subscribe(StoreSubscriber)][subscribe] for more info.
      *
      * @param onNewState callback to be called each time the State changes
-     * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
+     * @return [StoreSubscriber] which can be passed to [unsubscribe] to cancel the subscription
      */
     fun subscribe(onNewState: (STATE) -> Unit): StoreSubscriber<STATE, COMMAND> {
         val subscriber = object : StoreSubscriber<STATE, COMMAND> {

@@ -14,7 +14,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
         initialState: STATE,
-        private val reducer: (STATE, ACTION) -> STATE) {
+        private val reducer: Reducer<STATE, ACTION>) {
 
     /**
      * Creates the Redux Store.

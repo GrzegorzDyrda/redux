@@ -69,25 +69,25 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
     /**
      * Convenient method to dispatch more complicated logic.
      *
-     * @param block function to be called. It receives [dispatch] and [getState] functions as parameters
+     * @param actionCreator function to be called. It receives [dispatch] and [getState] functions as parameters
      */
-    fun <R> dispatch(block: (dispatch: (ACTION) -> ACTION, getState: () -> STATE) -> R): R {
-        return block(this::dispatch, this::getState)
+    fun <R> dispatch(actionCreator: (store: Store<STATE, ACTION, COMMAND>) -> R): R {
+        return actionCreator(this)
     }
 
     /**
      * Convenient method to dispatch asynchronous logic by utilizing coroutines.
      *
-     * The [block] parameter is a *suspending lambda*, thus allows calling any suspending
+     * The [actionCreator] parameter is a *suspending lambda*, thus allows calling any suspending
      * function inside.
      *
      * @param context coroutine context. If not specified [DefaultDispatcher] will be used
-     * @param block suspending lambda - the coroutine code
+     * @param actionCreator suspending lambda - the coroutine code
      */
     fun <R> dispatchAsync(context: CoroutineContext = DefaultDispatcher,
-                          block: suspend (dispatch: (ACTION) -> ACTION, getState: () -> STATE) -> R): Deferred<R> {
+                          actionCreator: suspend (store: Store<STATE, ACTION, COMMAND>) -> R): Deferred<R> {
         return async(context) {
-            block(this@Store::dispatch, this@Store::getState)
+            actionCreator(this@Store)
         }
     }
 

@@ -29,7 +29,7 @@ Add the dependency:
 
 ```
 dependencies {
-    compile 'com.github.GrzegorzDyrda:redux:0.9-alpha'
+    compile 'com.github.grzegorzdyrda.redux:redux:-SNAPSHOT'
 }
 ```
 

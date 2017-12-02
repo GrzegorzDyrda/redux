@@ -1,2 +1,4 @@
-rootProject.name = 'redux'
+//rootProject.name = 'redux-root'
+include 'redux'
+include 'examples'
 

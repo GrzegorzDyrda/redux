@@ -11,3 +11,14 @@ interface State<COMMAND> {
         get() = null
         set(value) {}
 }
+
+// Old version
+//interface StateWithCommand<COMMAND> {
+//    var CMD: COMMAND?
+//}
+//
+//interface State : StateWithCommand<Unit> {
+//    override var CMD: Unit?
+//        get() = null
+//        set(value) {}
+//}

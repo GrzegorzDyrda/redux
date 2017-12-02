@@ -51,6 +51,9 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
         // Obtain Command (if any) and remove it from the State
         val command = newState.CMD
         newState.CMD = null
+        // The following works even if STATE doesn't conform to State<COMMAND>
+        //val command = (newState as? State<*>)?.CMD as COMMAND
+        //(newState as? State<*>)?.CMD = null
 
         // Update current State and notify Subscribers
         if (newState != currentState) {
@@ -130,7 +133,7 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
      * @param onNewState callback to be called each time the State changes
      * @return [StoreSubscriber] which can be passed to [unsubscribe] to cancel the subscription
      */
-    fun subscribe(onNewState: (STATE) -> Unit): StoreSubscriber<STATE, COMMAND> {
+    fun subscribe(onNewState: (state: STATE) -> Unit): StoreSubscriber<STATE, COMMAND> {
         val subscriber = object : StoreSubscriber<STATE, COMMAND> {
             override fun onNewState(state: STATE) = onNewState(state)
             override fun onCommandReceived(command: COMMAND) = Unit

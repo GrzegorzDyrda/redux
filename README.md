@@ -1,8 +1,10 @@
-# Redux
+# Redux.kotlin
 
-Redux is a predictable state container for [Kotlin](https://kotlinlang.org/) apps, inspired by the brilliant [Redux.js](https://redux.js.org/)!
+Redux.kotlin is a predictable state container for [Kotlin](https://kotlinlang.org/) JVM & Android apps, inspired by the brilliant [Redux.js](https://redux.js.org/)!
 
-Although based on redux.js, redux-kotlin differs in several ways:
+[![](https://jitpack.io/v/grzegorzdyrda/redux.svg)](https://jitpack.io/#grzegorzdyrda/redux)
+
+Although based on redux.js, redux.kotlin differs in several ways:
 - Written in Kotlin
 - Thread safe (call `dispatch` from any thread)
 - Out-of-the-box [coroutines](https://kotlinlang.org/docs/reference/coroutines.html) support

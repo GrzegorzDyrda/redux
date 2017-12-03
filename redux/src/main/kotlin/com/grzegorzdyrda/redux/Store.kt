@@ -12,7 +12,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  * @param initialState initial state of the Store
  * @param reducer a function that returns the next State, given the current State and the Action
  */
-class Store<STATE, ACTION>(
+class Store<STATE : Any, ACTION : Any>(
         initialState: STATE,
         private val reducer: Reducer<STATE, ACTION>) {
 
@@ -25,8 +25,7 @@ class Store<STATE, ACTION>(
     constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
             this(initialState, reducerProvider::rootReducer)
 
-    private val subscribers = mutableListOf<StoreSubscriber<STATE>>()
-
+    private var subscribers = setOf<StoreSubscriber<STATE>>()
     private var currentState = initialState
     private var isDispatching = false
 
@@ -35,22 +34,31 @@ class Store<STATE, ACTION>(
      *
      * This method is thread-safe. Can be called from any thread.
      */
-    @Synchronized
     fun dispatch(action: ACTION): ACTION {
         if (isDispatching)
             throw IllegalStateException("Reducers may not dispatch actions! They should be pure functions - no side effects at all.")
 
-        // Compute the next State
-        val newState = try {
-            isDispatching = true
-            reducer(currentState, action)
-        } finally {
-            isDispatching = false
+        var isChanged = false
+        lateinit var newState: STATE
+
+        synchronized(this) {
+            // Compute the next State
+            try {
+                isDispatching = true
+                newState = reducer(currentState, action)
+            } finally {
+                isDispatching = false
+            }
+
+            isChanged = (newState != currentState)
+
+            // Update shared state
+            currentState = newState
         }
 
-        // Update current State and notify Subscribers
-        if (newState != currentState) {
-            currentState = newState
+        // Notify subscribers if needed
+        // Note: The original Redux does ALWAYS notify, even if state didn't change. Should we do the same?
+        if (isChanged) {
             subscribers.forEach { it.onNewState(newState) }
         }
 
@@ -100,7 +108,6 @@ class Store<STATE, ACTION>(
      * @param subscriber subscriber to be notified on every State change
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
-    @Synchronized
     fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
         if (isDispatching)
             throw IllegalStateException("You may not call store.subscribe() while the Reducer is executing! If you would like to be notified after the store has been updated, subscribe from a component and invoke store.getState() in the callback to access the latest state.")
@@ -132,7 +139,6 @@ class Store<STATE, ACTION>(
     /**
      * Unsubscribes the given [subscriber] from this store's State changes.
      */
-    @Synchronized
     fun unsubscribe(subscriber: StoreSubscriber<STATE>) {
         subscribers -= subscriber
     }

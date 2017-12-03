@@ -1,6 +1,8 @@
 # Table of Contents
 
 * [Introduction](#introduction)
+  * [What is Redux?](#what-is-redux)
+  * [What is it for?](#what-is-it-for)
 * [Basics](#basics)
 * [Examples](#examples)
   * [Hello World](#hello-world)
@@ -9,17 +11,36 @@
 
 ## Introduction
 
-Redux.kotlin is a **predictable state container** for Kotlin JVM & Android apps. It's inspired by [Redux.js](https://redux.js.org/) but adapted to the specific needs of JVM & Android apps.
+### What is Redux?
 
-The purpuse of Redux is to **help you manage your app's state**, especially in a multi-threaded environment.
+[Redux](https://redux.js.org/) is a predictable state container for JavaScript apps.
 
-Additionally it serves as your **single source of truth** - all your app's state is stored in a single place. Thus you can always see what's going on.
+[Redux.kotlin](#) is a reimplementation of this library written in [Kotlin](https://kotlinlang.org/). It's based on the same principles but adapted to the specific needs of JVM & Android apps.
 
-It also **makes debugging easy**, because all state changes must go through the single pipeline. You can log/record each single state change to easily spot possible problems.
+### What is it for?
+
+The purpose of Redux is to **simplify application's state management**, especially in large and/or multi-threaded environment.
+
+Redux serves as your **single source of truth**. The state of your whole application is stored in a single place.
+Also, **the state is read-only**. The only way to change it is to **dispatch an action**.
+ 
+<!--All state changes must go through a single pipeline.-->
+
+This single pipeline makes your everyday life **much much easier**. Things like **keeping track of
+the state, logging, debugging, or even time-travel** - suddenly become easy.
+
+<!-- You can log/record each single state change to easily spot possible problems. -->
+
+On top of it, Redux is **extremely simple**. It only takes 10-15 minutes to learn the basics.
+
+And when combined with Kotlin's [coroutines](https://kotlinlang.org/docs/reference/coroutines.html),
+[ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel.html),
+[Anvil](https://github.com/zserge/anvil) and similar libraries - it becomes a very powerful tool
+that keeps your apps concise & predictable even at large scale.
 
 ## Basics
 
-Redux is actually really simple.
+Redux is really simple.
 
 You describe the state of your app/window/activity as a simple POJO:
 

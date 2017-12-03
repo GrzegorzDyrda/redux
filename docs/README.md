@@ -99,9 +99,9 @@ store.dispatch(DecrementAction())
 // onNewState: AppState(count=2)
 ```
 
-And that's it!
+And that's it! Now each time the state changes, you'll be notified about it.
 
-The basics of Redux are simple. But when combined with Kotlin's coroutines, ViewModel, Anvil and similar libraries - it becomes a very powerful tool that keeps your app's behaviour predictable even at large scale.
+> The source code of this example can be found [here](../examples/src/main/kotlin/com/example/redux/Basic.kt).
 
 
 ## Examples

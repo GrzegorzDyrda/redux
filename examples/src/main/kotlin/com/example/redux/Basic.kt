@@ -12,10 +12,9 @@ package com.example.redux
  * Created by Grzegorz Dyrda on 2017-12-02
  */
 
-import com.grzegorzdyrda.redux.State
 import com.grzegorzdyrda.redux.Store
 
-data class AppState(val count: Int) : State<Unit>
+data class AppState(val count: Int)
 
 sealed class Action
 class IncrementAction : Action()

@@ -12,7 +12,7 @@ import kotlin.coroutines.experimental.CoroutineContext
  * @param initialState initial state of the Store
  * @param reducer a function that returns the next State, given the current State and the Action
  */
-class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
+class Store<STATE, ACTION>(
         initialState: STATE,
         private val reducer: Reducer<STATE, ACTION>) {
 
@@ -25,7 +25,7 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
     constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
             this(initialState, reducerProvider::rootReducer)
 
-    private val subscribers = mutableListOf<StoreSubscriber<STATE, COMMAND>>()
+    private val subscribers = mutableListOf<StoreSubscriber<STATE>>()
 
     private var currentState = initialState
     private var isDispatching = false
@@ -48,22 +48,10 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
             isDispatching = false
         }
 
-        // Obtain Command (if any) and remove it from the State
-        val command = newState.CMD
-        newState.CMD = null
-        // The following works even if STATE doesn't conform to State<COMMAND>
-        //val command = (newState as? State<*>)?.CMD as COMMAND
-        //(newState as? State<*>)?.CMD = null
-
         // Update current State and notify Subscribers
         if (newState != currentState) {
             currentState = newState
             subscribers.forEach { it.onNewState(newState) }
-        }
-
-        // Dispatch Command (if any)
-        command?.let {
-            subscribers.forEach { it.onCommandReceived(command) }
         }
 
         return action
@@ -74,7 +62,7 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
      *
      * @param actionCreator function to be called. It receives [dispatch] and [getState] functions as parameters
      */
-    fun <R> dispatch(actionCreator: (store: Store<STATE, ACTION, COMMAND>) -> R): R {
+    fun <R> dispatch(actionCreator: (store: Store<STATE, ACTION>) -> R): R {
         return actionCreator(this)
     }
 
@@ -88,7 +76,7 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
      * @param actionCreator suspending lambda - the coroutine code
      */
     fun <R> dispatchAsync(context: CoroutineContext = DefaultDispatcher,
-                          actionCreator: suspend (store: Store<STATE, ACTION, COMMAND>) -> R): Deferred<R> {
+                          actionCreator: suspend (store: Store<STATE, ACTION>) -> R): Deferred<R> {
         return async(context) {
             actionCreator(this@Store)
         }
@@ -113,7 +101,7 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
     @Synchronized
-    fun subscribe(subscriber: StoreSubscriber<STATE, COMMAND>): StoreSubscriber<STATE, COMMAND> {
+    fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
         if (isDispatching)
             throw IllegalStateException("You may not call store.subscribe() while the Reducer is executing! If you would like to be notified after the store has been updated, subscribe from a component and invoke store.getState() in the callback to access the latest state.")
 
@@ -133,10 +121,9 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
      * @param onNewState callback to be called each time the State changes
      * @return [StoreSubscriber] which can be passed to [unsubscribe] to cancel the subscription
      */
-    fun subscribe(onNewState: (state: STATE) -> Unit): StoreSubscriber<STATE, COMMAND> {
-        val subscriber = object : StoreSubscriber<STATE, COMMAND> {
+    fun subscribe(onNewState: (state: STATE) -> Unit): StoreSubscriber<STATE> {
+        val subscriber = object : StoreSubscriber<STATE> {
             override fun onNewState(state: STATE) = onNewState(state)
-            override fun onCommandReceived(command: COMMAND) = Unit
         }
 
         return subscribe(subscriber)
@@ -146,7 +133,7 @@ class Store<STATE : State<COMMAND>, ACTION, COMMAND>(
      * Unsubscribes the given [subscriber] from this store's State changes.
      */
     @Synchronized
-    fun unsubscribe(subscriber: StoreSubscriber<STATE, COMMAND>) {
+    fun unsubscribe(subscriber: StoreSubscriber<STATE>) {
         subscribers -= subscriber
     }
 

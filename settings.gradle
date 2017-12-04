@@ -1,4 +1,5 @@
 //rootProject.name = 'redux-root'
 include 'redux'
+include 'redux-rxjava2'
 include 'examples'
 

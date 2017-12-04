@@ -5,9 +5,8 @@
   * [What is it for?](#what-is-it-for)
 * [Basics](#basics)
 * [Examples](#examples)
-  * [Hello World](#hello-world)
-  * [Counter](#counter)
   * [Async Actions](#async-actions)
+  * [RxJava Integration](#rxjava-integration)
 
 ## Introduction
 
@@ -99,25 +98,19 @@ store.dispatch(DecrementAction())
 
 And that's it! Now each time the state changes, you'll be notified about it.
 
-> The source code of this example can be found [here](../examples/src/main/kotlin/com/example/redux/Basic.kt).
+> The source code of this example can be found [here](../examples/src/main/kotlin/com/example/redux/basic/Basic.kt).
 
 
 ## Examples
-
-### Hello World
-
-TODO
-
-You can see the whole source code [here](#).
-
-### Counter
-
-TODO
-
-You can see the whole source code [here](#).
 
 ### Async Actions
 
 TODO
 
-You can see the whole source code [here](#).
+> You can see the whole source code [here](#).
+
+### RxJava Integration
+
+TODO
+
+> You can see the whole source code [here](../examples/src/main/kotlin/com/example/redux/observable/Observable.kt).

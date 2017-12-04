@@ -1,18 +1,14 @@
-package com.example.redux
+package com.example.redux.observable
 
 /**
- * Basic Redux example.
+ * Example that shows integration with RxJava2.
  *
- * It demonstrates the basic setup, which is:
- * - Define state POJO
- * - Define some actions (also POJOs)
- * - Write a reducer (function that describes how actions are affecting the state)
- * - Subscribe to state changes
- *
- * Created by Grzegorz Dyrda on 2017-12-02
+ * Created by Grzegorz Dyrda on 2017-12-04
  */
 
 import com.grzegorzdyrda.redux.Store
+import com.grzegorzdyrda.redux.rxjava2.toObservable
+import io.reactivex.Observable
 
 data class AppState(val count: Int)
 
@@ -24,17 +20,22 @@ fun reducer(state: AppState, action: Action): AppState {
     return when (action) {
         is IncrementAction -> state.copy(count = state.count + 1)
         is DecrementAction -> state.copy(count = state.count - 1)
-        else -> state
     }
 }
 
 val store = Store(AppState(1), ::reducer)
 
-fun main(args: Array<String>) {
+fun render(states: Observable<AppState>) {
+    states
+            .filter { it.count > 1 }
+            .map { it.count }
+            .subscribe {
+                println("New value greater than one = $it")
+            }
+}
 
-    store.subscribe { state ->
-        println("onNewState: $state")
-    }
+fun main(args: Array<String>) {
+    render(store.toObservable())
 
     store.dispatch(IncrementAction())
     store.dispatch(IncrementAction())

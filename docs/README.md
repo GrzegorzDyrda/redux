@@ -13,9 +13,7 @@
 
 ### What is Redux?
 
-[Redux](https://redux.js.org/) is a predictable state container for JavaScript apps.
-
-[Redux.kotlin](#) is a reimplementation of this library written in [Kotlin](https://kotlinlang.org/). It's based on the same principles but adapted to the specific needs of JVM & Android apps.
+[Redux.kotlin](#) is a reimplementation of [Redux](https://redux.js.org/) library written in [Kotlin](https://kotlinlang.org/) and adapted to the specific needs of JVM & Android apps.
 
 ### What is it for?
 

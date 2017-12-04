@@ -30,6 +30,17 @@ class Store<STATE : Any, ACTION : Any>(
     private var isDispatching = false
 
     /**
+     * Returns the current State kept by the Store.
+     */
+    val state: STATE
+        get() {
+            if (isDispatching)
+                throw IllegalStateException("You may not call store.getState() while the Reducer is executing! The reducer has already received the State as an argument. Pass it down from the top Reducer instead of reading it from the store.")
+
+            return currentState
+        }
+
+    /**
      * Dispatches an Action. It's the only way to trigger a State change.
      *
      * This method is thread-safe. Can be called from any thread.
@@ -88,16 +99,6 @@ class Store<STATE : Any, ACTION : Any>(
         return async(context) {
             actionCreator(this@Store)
         }
-    }
-
-    /**
-     * Returns the current State kept by the Store.
-     */
-    fun getState(): STATE {
-        if (isDispatching)
-            throw IllegalStateException("You may not call store.getState() while the Reducer is executing! The reducer has already received the State as an argument. Pass it down from the top Reducer instead of reading it from the store.")
-
-        return currentState
     }
 
     /**

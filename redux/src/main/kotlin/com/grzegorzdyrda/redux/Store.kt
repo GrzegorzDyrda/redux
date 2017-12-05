@@ -1,5 +1,6 @@
 package com.grzegorzdyrda.redux
 
+import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.DefaultDispatcher
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
@@ -102,7 +103,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @param actionCreator suspending lambda - the coroutine code
      */
     fun <R> dispatchAsync(context: CoroutineContext = DefaultDispatcher,
-                          actionCreator: suspend (store: Store<STATE, ACTION>) -> R): Deferred<R> {
+                          actionCreator: suspend CoroutineScope.(store: Store<STATE, ACTION>) -> R): Deferred<R> {
         return async(context) {
             actionCreator(this@Store)
         }

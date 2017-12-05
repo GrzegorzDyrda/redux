@@ -10,8 +10,11 @@ import io.reactivex.Observable
  */
 fun <STATE : Any, ACTION : Any> Store<STATE, ACTION>.toObservable(): Observable<STATE> {
     return Observable.create<STATE> { emitter ->
-        subscribe { state ->
+        val subscriber = subscribe { state ->
             emitter.onNext(state)
+        }
+        emitter.setCancellable {
+            unsubscribe(subscriber)
         }
     }
 }

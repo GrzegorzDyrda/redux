@@ -14,4 +14,15 @@ interface StoreSubscriber<in STATE> {
      * @param state current State provided by the Store
      */
     fun onNewState(state: STATE)
+
+    /**
+     * Called each time a Command has been sent.
+     *
+     * Commands are a way of telling that some one-time side-effect should be performed.
+     *
+     * @param command recent Command sent by using [Store.sendCommand]
+     */
+    fun onCommandReceived(command: Any) {
+        // Default implementation simply ignores all Commands
+    }
 }

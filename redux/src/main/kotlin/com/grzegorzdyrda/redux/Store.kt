@@ -102,6 +102,26 @@ class Store<STATE : Any, ACTION : Any>(
     }
 
     /**
+     * Sends a Command. It's a way of telling Subscribers to perform a one-time side-effect.
+     *
+     * Each time a Command is sent, [StoreSubscriber.onCommandReceived] gets called.
+     *
+     * Since Commands are NOT stored in the State, they're ideal for things like navigation,
+     * showing toasts etc.
+     *
+     * @param command command to be sent to subscribers
+     * @return the command
+     */
+    fun sendCommand(command: Any): Any {
+        if (isDispatching)
+            throw IllegalStateException("Reducers may not send commands! They should be pure functions - no side effects at all.")
+
+        subscribers.forEach { it.onCommandReceived(command) }
+
+        return command
+    }
+
+    /**
      * Subscribes the [subscriber] to this store's State changes.
      *
      * It also immediately notifies the [subscriber] about the current State.

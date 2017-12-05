@@ -43,7 +43,14 @@ class Store<STATE : Any, ACTION : Any>(
     /**
      * Dispatches an Action. It's the only way to trigger a State change.
      *
+     * Dispatching an Action starts the following sequence:
+     * - [ReducerProvider.rootReducer] gets called, and returns the new state
+     * - Subscribers are notified about the state change via [StoreSubscriber.onNewState]
+     *
      * This method is thread-safe. Can be called from any thread.
+     *
+     * @param action action to be dispatched
+     * @return the dispatched action
      */
     fun dispatch(action: ACTION): ACTION {
         if (isDispatching)
@@ -79,7 +86,7 @@ class Store<STATE : Any, ACTION : Any>(
     /**
      * Convenient method to dispatch more complicated logic.
      *
-     * @param actionCreator function to be called. It receives [dispatch] and [getState] functions as parameters
+     * @param actionCreator function to be called. It receives [Store] as parameter
      */
     fun <R> dispatch(actionCreator: (store: Store<STATE, ACTION>) -> R): R {
         return actionCreator(this)

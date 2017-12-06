@@ -29,6 +29,12 @@ class Store<STATE : Any, ACTION : Any>(
     constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
             this(initialState, reducerProvider::rootReducer)
 
+    //    val executor = Executors.newSingleThreadExecutor { r: Runnable ->
+//        Executors.defaultThreadFactory().newThread(r).apply {
+//            name = "Redux thread"
+//            isDaemon = true
+//        }
+//    }
     private val lock = ReentrantLock(true)
     private var subscribers = setOf<StoreSubscriber<STATE>>()
     private var currentState = initialState
@@ -58,9 +64,11 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the dispatched action
      */
     fun dispatch(action: ACTION): ACTION {
+        //executor.submit {
         if (isDispatching[Thread.currentThread().id] == true)
             throw IllegalStateException("Reducers may not dispatch actions! They should be pure functions - no side effects at all.")
 
+        println("dispatch: $action")
         var isChanged = false
         lateinit var newState: STATE
 
@@ -77,13 +85,16 @@ class Store<STATE : Any, ACTION : Any>(
 
             // Update shared state
             currentState = newState
+            println("currentState: $currentState")
         }
 
         // Notify subscribers if needed
         // Note: The original Redux does ALWAYS notify, even if state didn't change. Should we do the same?
         if (isChanged) {
+            println("notifying: $newState")
             subscribers.forEach { it.onNewState(newState) }
         }
+        //} //executor.submit
 
         return action
     }

@@ -5,6 +5,8 @@ import kotlinx.coroutines.experimental.DefaultDispatcher
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -27,6 +29,7 @@ class Store<STATE : Any, ACTION : Any>(
     constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
             this(initialState, reducerProvider::rootReducer)
 
+    private val lock = ReentrantLock(true)
     private var subscribers = setOf<StoreSubscriber<STATE>>()
     private var currentState = initialState
     private var isDispatching = ConcurrentHashMap<Long, Boolean>(Runtime.getRuntime().availableProcessors())
@@ -61,7 +64,7 @@ class Store<STATE : Any, ACTION : Any>(
         var isChanged = false
         lateinit var newState: STATE
 
-        synchronized(this) {
+        lock.withLock {
             // Compute the next State
             try {
                 isDispatching[Thread.currentThread().id] = true

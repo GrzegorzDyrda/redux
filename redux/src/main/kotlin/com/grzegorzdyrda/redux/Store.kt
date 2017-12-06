@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.DefaultDispatcher
 import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.experimental.CoroutineContext
 
 /**
@@ -28,14 +29,14 @@ class Store<STATE : Any, ACTION : Any>(
 
     private var subscribers = setOf<StoreSubscriber<STATE>>()
     private var currentState = initialState
-    private var isDispatching = false
+    private var isDispatching = ConcurrentHashMap<Long, Boolean>(Runtime.getRuntime().availableProcessors())
 
     /**
      * Returns the current State kept by the Store.
      */
     val state: STATE
         get() {
-            if (isDispatching)
+            if (isDispatching[Thread.currentThread().id] == true)
                 throw IllegalStateException("You may not call store.getState() while the Reducer is executing! The reducer has already received the State as an argument. Pass it down from the top Reducer instead of reading it from the store.")
 
             return currentState
@@ -54,7 +55,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the dispatched action
      */
     fun dispatch(action: ACTION): ACTION {
-        if (isDispatching)
+        if (isDispatching[Thread.currentThread().id] == true)
             throw IllegalStateException("Reducers may not dispatch actions! They should be pure functions - no side effects at all.")
 
         var isChanged = false
@@ -63,10 +64,10 @@ class Store<STATE : Any, ACTION : Any>(
         synchronized(this) {
             // Compute the next State
             try {
-                isDispatching = true
+                isDispatching[Thread.currentThread().id] = true
                 newState = reducer(currentState, action)
             } finally {
-                isDispatching = false
+                isDispatching[Thread.currentThread().id] = false
             }
 
             isChanged = (newState != currentState)
@@ -121,7 +122,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the command
      */
     fun sendCommand(command: Any): Any {
-        if (isDispatching)
+        if (isDispatching[Thread.currentThread().id] == true)
             throw IllegalStateException("Reducers may not send commands! They should be pure functions - no side effects at all.")
 
         subscribers.forEach { it.onCommandReceived(command) }
@@ -138,7 +139,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
     fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
-        if (isDispatching)
+        if (isDispatching[Thread.currentThread().id] == true)
             throw IllegalStateException("You may not call store.subscribe() while the Reducer is executing! If you would like to be notified after the store has been updated, subscribe from a component and invoke store.getState() in the callback to access the latest state.")
 
         subscribers += subscriber

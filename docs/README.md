@@ -31,12 +31,11 @@ Also, **the state is read-only**. The only way to change it is to **dispatch an 
  
 <!--All state changes must go through a single pipeline.-->
 
-This single pipeline makes your everyday life **much much easier**. Things like **keeping track of
-the state, logging, debugging, or even time-travel** - suddenly become easy.
+This single pipeline makes your everyday life **much much easier**. Things like **keeping track of asynchronous state changes, logging, debugging, testing or even time-travel** - suddenly become easy.
 
 <!-- You can log/record each single state change to easily spot possible problems. -->
 
-On top of it, Redux is **extremely simple**. It only takes 10-15 minutes to learn the basics.
+On top of it, Redux is **extremely simple**. It roughly 15 minutes to learn the basics.
 
 And when combined with Kotlin's [coroutines](https://kotlinlang.org/docs/reference/coroutines.html),
 [ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel.html),

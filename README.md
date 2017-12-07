@@ -33,15 +33,9 @@ Add the dependency:
 
 ```
 dependencies {
-    compile 'com.github.grzegorzdyrda.redux:redux:-SNAPSHOT'
+    compile 'com.github.grzegorzdyrda.redux:redux:0.9.2-alpha'
 }
 ```
-
-## Getting Started
-
-If you're curious about Redux philosophy, take a look at this great documentation: https://redux.js.org/
-
-TODO
 
 ## License
 

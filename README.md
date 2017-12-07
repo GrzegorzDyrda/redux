@@ -33,7 +33,7 @@ Add the dependency:
 
 ```
 dependencies {
-    compile 'com.github.grzegorzdyrda.redux:redux:0.9.2-alpha'
+    compile 'com.github.grzegorzdyrda.redux:redux:0.9.3-alpha'
 }
 ```
 

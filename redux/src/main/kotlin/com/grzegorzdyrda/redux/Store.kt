@@ -39,8 +39,7 @@ class Store<STATE : Any, ACTION : Any>(
      */
     val state: STATE
         get() {
-            if (isDispatching[Thread.currentThread().id] == true)
-                throw IllegalStateException("You may not call store.getState() while the Reducer is executing! The reducer has already received the State as an argument. Pass it down from the top Reducer instead of reading it from the store.")
+            throwIfCalledFromReducer { "Reducers may not call store.getState()! The reducer has already received the State as an argument. Pass it down from the top Reducer instead of reading it from the store." }
 
             return currentState
         }
@@ -58,8 +57,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the dispatched action
      */
     fun dispatch(action: ACTION): ACTION {
-        if (isDispatching[Thread.currentThread().id] == true)
-            throw IllegalStateException("Reducers may not dispatch actions! They should be pure functions - no side effects at all.")
+        throwIfCalledFromReducer { "Reducers may not dispatch Actions! They should be pure functions - no side effects at all." }
 
         var isChanged = false
         lateinit var newState: STATE
@@ -125,8 +123,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the command
      */
     fun sendCommand(command: Any): Any {
-        if (isDispatching[Thread.currentThread().id] == true)
-            throw IllegalStateException("Reducers may not send commands! They should be pure functions - no side effects at all.")
+        throwIfCalledFromReducer { "Reducers may not send Commands! They should be pure functions - no side effects at all." }
 
         subscribers.forEach { it.onCommandReceived(command) }
 
@@ -142,8 +139,7 @@ class Store<STATE : Any, ACTION : Any>(
      * @return the subscriber, which can be passed to [unsubscribe] to cancel subscription
      */
     fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
-        if (isDispatching[Thread.currentThread().id] == true)
-            throw IllegalStateException("You may not call store.subscribe() while the Reducer is executing! If you would like to be notified after the store has been updated, subscribe from a component and invoke store.getState() in the callback to access the latest state.")
+        throwIfCalledFromReducer { "Reducers may not call store.subscribe()! They should be pure functions - no side effects at all." }
 
         subscribers += subscriber
         // Immediately notify new subscriber about the current State.
@@ -174,6 +170,11 @@ class Store<STATE : Any, ACTION : Any>(
      */
     fun unsubscribe(subscriber: StoreSubscriber<STATE>) {
         subscribers -= subscriber
+    }
+
+    private inline fun throwIfCalledFromReducer(lazyMessage: () -> Any) {
+        if (isDispatching[Thread.currentThread().id] == true)
+            throw IllegalStateException(lazyMessage().toString())
     }
 
 }

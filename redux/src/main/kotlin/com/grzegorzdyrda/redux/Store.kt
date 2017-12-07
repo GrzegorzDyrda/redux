@@ -18,7 +18,8 @@ import kotlin.coroutines.experimental.CoroutineContext
  */
 class Store<STATE : Any, ACTION : Any>(
         initialState: STATE,
-        private val reducer: Reducer<STATE, ACTION>) {
+        private val reducer: Reducer<STATE, ACTION>,
+        val debug: Boolean = false) {
 
     /**
      * Creates the Redux Store.
@@ -26,8 +27,9 @@ class Store<STATE : Any, ACTION : Any>(
      * @param initialState initial state of the Store
      * @param reducerProvider class that provides the Reducer function
      */
-    constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>) :
-            this(initialState, reducerProvider::rootReducer)
+    constructor(initialState: STATE, reducerProvider: ReducerProvider<STATE, ACTION>,
+                debug: Boolean = false) :
+            this(initialState, reducerProvider::rootReducer, debug)
 
     private val lock = ReentrantLock(true)
     private var subscribers = setOf<StoreSubscriber<STATE>>()
@@ -59,6 +61,8 @@ class Store<STATE : Any, ACTION : Any>(
     fun dispatch(action: ACTION): ACTION {
         throwIfCalledFromReducer { "Reducers may not dispatch Actions! They should be pure functions - no side effects at all." }
 
+        if (debug) debug("dispatch: action = $action")
+
         var isChanged = false
         lateinit var newState: STATE
 
@@ -80,7 +84,11 @@ class Store<STATE : Any, ACTION : Any>(
         // Notify subscribers if needed
         // Note: The original Redux does ALWAYS notify, even if state didn't change. Should we do the same?
         if (isChanged) {
+            if (debug) debug("dispatch: new state = $newState")
+
             subscribers.forEach { it.onNewState(newState) }
+        } else {
+            if (debug) debug("dispatch: state did not change")
         }
 
         return action
@@ -125,6 +133,8 @@ class Store<STATE : Any, ACTION : Any>(
     fun sendCommand(command: Any): Any {
         throwIfCalledFromReducer { "Reducers may not send Commands! They should be pure functions - no side effects at all." }
 
+        if (debug) debug("sendCommand: command = $command")
+
         subscribers.forEach { it.onCommandReceived(command) }
 
         return command
@@ -140,6 +150,8 @@ class Store<STATE : Any, ACTION : Any>(
      */
     fun subscribe(subscriber: StoreSubscriber<STATE>): StoreSubscriber<STATE> {
         throwIfCalledFromReducer { "Reducers may not call store.subscribe()! They should be pure functions - no side effects at all." }
+
+        if (debug) debug("subscribe: subscriber = $subscriber")
 
         subscribers += subscriber
         // Immediately notify new subscriber about the current State.
@@ -169,12 +181,18 @@ class Store<STATE : Any, ACTION : Any>(
      * Unsubscribes the given [subscriber] from this store's State changes.
      */
     fun unsubscribe(subscriber: StoreSubscriber<STATE>) {
+        if (debug) debug("unsubscribe: subscriber = $subscriber")
+
         subscribers -= subscriber
     }
 
     private inline fun throwIfCalledFromReducer(lazyMessage: () -> Any) {
         if (isDispatching[Thread.currentThread().id] == true)
             throw IllegalStateException(lazyMessage().toString())
+    }
+
+    private fun debug(msg: Any) {
+        println("(${Thread.currentThread().name}) ${msg.toString()}")
     }
 
 }

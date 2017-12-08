@@ -13,6 +13,8 @@
 * [Async Flow](#async-flow)
   * [Async Actions](#async-actions)
   * [Coroutines](#coroutines)
+  * [Sequential Logic](#sequential-logic)
+  * [Parallel Logic](#parallel-logic)
 * [Android](#android)
 * [RxJava Integration](#rxjava-integration)
 
@@ -197,13 +199,98 @@ Since Commands are not stored in the state, they're ideal for one-time effects l
 
 ## Async Flow
 
+So  far all our logic was *synchronous*. Every time an Action was dispatched, the State was updated immediately.
+But real-life applications are rarely that simple. Database access, network requests - these are examples
+of *asynchronous* logic, which means the response can come at ANY point in time.
+How does this fit into the [Redux.kotlin](#) flow?
+
+Let's build a sample asynchronous application. It will send a [Retrofit](http://square.github.io/retrofit/)
+request, show "loading" indicator, wait for the response, hide "loading" indicator, and display the result.
+And all of this will be done without even a single callback!
+
 ### Async Actions
 
-TODO
+> Note: This tutorial assumes you have Retrofit configured as shown [here](http://square.github.io/retrofit/).
+
+Let's say we have an `isFetching` flag in our State. We want to set `isFetching=true` at the beginning
+of network request and then `isFetching=false` when the response arrives. How can we do it?
+
+One way would be to `dispatch` one action along with sending a request, and then another one in the response callback:
+
+```kotlin
+store.dispatch(FETCH_REPOS_REQUEST)
+github.listRepos(userName).enqueue(object : Callback<List<Repo>> {
+    override fun onResponse(call: Call<List<Repo>>, response: Response<List<Repo>>) {
+        store.dispatch(FETCH_REPOS_RESPONSE(response))
+    }
+    override fun onFailure(call: Call<List<Repo>>?, t: Throwable?) {}
+})
+```
+
+And it works fine - but only for simple scenarios. 
+As soon as we add more requests, one after another, it turns into a "[callback hell](http://callbackhell.com/)".
+Just imagine how would it look like if you had 3 subsequent, dependent requests...?
 
 ### Coroutines
 
-TODO
+Fortunately, we have a better way. And it's by utilising Kotlin's [coroutines](https://kotlinlang.org/docs/reference/coroutines.html):
+
+```kotlin
+store.dispatchAsync {
+    store.dispatch(FETCH_REPOS_REQUEST)
+    val repos = async { github.listRepos(userName).execute().body()!! }
+    store.dispatch(FETCH_REPOS_RESPONSE(userName, repos.await()))
+}
+``` 
+
+Notice how the above code looks sequential but actually is asynchronous? This is possible because coroutines
+can **suspend** the execution **without blocking** the thread. `async()` creates new coroutine and
+returns a basic [future](https://en.wikipedia.org/wiki/Futures_and_promises), while `await()` waits (without blocking) for this future to complete.
+
+This simple mechanism (`async`/`await`) allows us to write arbitrarily complex asynchronous logic
+that is simple and easy to grasp, and also keeps asynchronicity explicit.
+
+### Sequential Logic
+
+If we wanted to send multiple requests one after another, it's as easy as putting another
+`async`/`await`. Moreover, error handling works exactly as it would in a sequential code:
+
+```kotlin
+store.dispatchAsync {
+    try {
+        store.dispatch(FETCH_CONTRIBUTORS_REQUEST)
+        
+        // first request
+        val repos = async { github.listRepos(userName).execute().body()!! }
+        val firstRepo = repos.await()[0]
+        
+        // second request
+        val contributors = async { github.listContributors(userName, firstRepo.name).execute().body()!! }
+        store.dispatch(FETCH_CONTRIBUTORS_RESPONSE(contributors.await()))
+        
+    } catch (e: Exception) {
+        store.dispatch(FETCH_CONTRIBUTORS_ERROR(userName, e))
+    }
+}
+``` 
+
+### Parallel Logic
+
+Parallel requests are also easy. Just put multiple `async` blocks first, and `await`'s only after them:
+
+```kotlin
+store.dispatchAsync {
+    store.dispatch(FETCH_REPOS_REQUEST)
+    
+    // two parallel requests
+    val repos1 = async { github.listRepos(user1).execute().body()!! }
+    val repos2 = async { github.listRepos(user2).execute().body()!! }
+    
+    val allRepos = repos1.await() + repos2.await()
+    
+    store.dispatch(FETCH_REPOS_RESPONSE(allRepos))
+}
+``` 
 
 ## Android
 

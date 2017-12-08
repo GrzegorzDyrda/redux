@@ -272,7 +272,9 @@ store.dispatchAsync {
         store.dispatch(FETCH_CONTRIBUTORS_ERROR(userName, e))
     }
 }
-``` 
+```
+
+> Full source code of this example can be found [here](../examples/src/main/kotlin/com/example/redux/async/Async.kt). 
 
 ### Parallel Logic
 

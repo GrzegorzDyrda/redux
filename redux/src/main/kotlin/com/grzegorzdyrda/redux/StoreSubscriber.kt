@@ -23,6 +23,7 @@ interface StoreSubscriber<in STATE> {
      * @param command recent Command sent by using [Store.sendCommand]
      */
     fun onCommandReceived(command: Any) {
-        // Default implementation simply ignores all Commands
+        // Default implementation throws an exception
+        throw NotImplementedError("A Command has been sent, but Target class doesn't implement onCommandReceived()! Please implement the missing method. Command = $command, Target = $this")
     }
 }
